@@ -1,0 +1,263 @@
+﻿@model InventoryAPP.Models.InventoryViewModel
+
+@{
+    ViewBag.Title = "Create";
+}
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+<div class="form-horizontal">
+    <h4>Create Order</h4>
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Date, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.Date, new { htmlAttributes = new { @class = "form-control" } })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.BillNo, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.BillNo, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.BillNo, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.CustomerId, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.DropDownListFor(model => model.CustomerId, Model.CustomerList, "Select", new { @class = "form-control" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ProductId, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.DropDownListFor(model => model.ProductId, Model.ProductList, "Select", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="button" class="btn btn-success add-row" value="Add Row">
+        </div>
+    </div>
+    <table class="table table-bordered" id="productTable">
+        <thead>
+            <tr>
+                <td>Product</td>
+                <td>Rate</td>
+                <td>Qty</td>
+                <td>Total Amount</td>
+                <td>Discount (Amt)</td>
+                <td>Net Amount</td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.InventoryProductList)
+            {
+            <tr>
+                <td style="display: none">@item.Id</td>
+                <td style="display: none">@item.ProductId</td>
+                <td style="display: none">@item.InventoryId</td>
+                <td>@item.ProductName</td>
+                <td class="rate"> @item.Rate</td>
+                <td><input type='text' class='form-control qty' id='qty' value="@item.Qty" onchange='GetPrice(this)' /></td>
+                <td class="totalAmount">@item.TotalAmount</td>
+                <td class="discount"><input type='text' class='form-control discount' id='discount' value="@item.Discount" onchange='GetPrice(this)' /></td>
+                <td class="netTotal">@item.NetTotal</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+    <div class="form-group">
+        @Html.LabelFor(model => model.TotalDiscount, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.TotalDiscount, new { htmlAttributes = new { @class = "form-control" } })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.TotalBillAmount, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.TotalBillAmount, new { htmlAttributes = new { @class = "form-control" } })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.PaidAmount, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.PaidAmount, new { htmlAttributes = new { @class = "form-control" } })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.DueAmount, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.DueAmount, new { htmlAttributes = new { @class = "form-control" } })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="button" class="btn btn-success save" value="Save Change">
+        </div>
+    </div>
+</div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index",null, new { @class = "btn btn-default" })
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $(".add-row").click(function (e) {
+                e.preventDefault();
+                var ProductId = $("#ProductId").val();
+                var InventoryId = 0;
+                //var url = "GetProduct" + '?id=' + ProductId;
+                var url = '@Url.Action("GetProduct", "Order")';
+                $.getJSON(url + '?id=' + ProductId, function (data) {
+                    var markup = "<tr><td style='display: none'>" + 0 + "</td><td style='display: none'>" + ProductId + "</td><td style='display: none'>" + InventoryId + "</td><td>" + data.Name + "</td><td class='rate'>" + data.Rate + "</td><td><input type='text' class='form-control qty' id='qty' onchange='GetPrice(this)'/></td><td class='totalAmount'>" + 0 + "</td><td><input type='text' value='0' class='form-control discount' id='discount' onchange='GetPrice(this)'/></td><td class='netTotal'>" + 0 + "</td></tr>";
+                                    $("table tbody").append(markup);
+                });
+
+                });
+        });
+
+        $("#PaidAmount").change(function () {
+            var due = $('#TotalBillAmount').val();
+            var v = $(this).val();
+            due = due -v;
+            $('#DueAmount').val(due);
+        });
+
+        function GetPrice(obj) {
+            var quantity = parseInt($(obj).closest('tr').find('#qty').val());
+            var rate = $(obj).closest('tr').find('.rate').text();
+            var discount = parseFloat($(obj).closest('tr').find('.discount').val()); //$(obj).closest('tr').find('.discount').text();
+            var price = quantity * rate;
+            if (isNaN(discount)) {
+                discount = 0;
+            }
+            var netTotal = price - discount;
+            $(obj).closest('tr').find('.totalAmount').text(price);
+            $(obj).closest('tr').find('.netTotal').text(netTotal);
+            GetTotalPrice();
+        }
+
+        function GetTotalPrice() {
+            $('#TotalDiscount').val('0');
+            $('#TotalBillAmount').val('0');
+            $('#DueAmount').val('0');
+            $('#PaidAmount').val('0');
+
+            var n = $('#productTable tr').length;
+            var DiscountAmount = 0;
+            var BillAmount = 0;
+
+            for (var i = 1; i < n; i++) {
+                var discount = $("#productTable").find("tr").eq(i).find("td:eq(7) input[type='text']").val();
+                if (discount != "")
+                    DiscountAmount = DiscountAmount + parseFloat(discount);
+
+                var bill = $("#productTable").find("tr").eq(i).find("td").eq(8).text();
+                if (bill != "")
+                    BillAmount = BillAmount + parseFloat(bill);
+
+            }
+            $('#TotalDiscount').val(DiscountAmount);
+            $('#TotalBillAmount').val(BillAmount);
+            $('#DueAmount').val(BillAmount);
+            $('#PaidAmount').val('0');
+        }
+
+        $(".save").click(function (e) {
+            e.preventDefault();
+
+
+            var n = $('#productTable tr').length;
+            var detail = [];
+            for (var i = 1; i < n; i++) {
+                var Id = $("#productTable").find("tr").eq(i).find("td").eq(0).text();
+                var ProductId = $("#productTable").find("tr").eq(i).find("td").eq(1).text();
+                var InventoryId = $("#productTable").find("tr").eq(i).find("td").eq(2).text();
+
+                var Rate = $("#productTable").find("tr").eq(i).find("td").eq(4).text();
+                var qty = $("#productTable").find("tr").eq(i).find("td:eq(5) input[type='text']").val();
+                var amount = $("#productTable").find("tr").eq(i).find("td").eq(6).text();
+                var discount = $("#productTable").find("tr").eq(i).find("td:eq(7) input[type='text']").val();
+                var dd = {
+                    id: Id,
+                    productId: ProductId,
+                    inventoryId: InventoryId,
+                    rate: Rate,
+                    qty: qty,
+                    discount: discount
+                }
+                detail.push(dd);
+            }
+
+
+            var Id = $("#Id").val();
+            var nDate = $("#Date").val();
+            var BillNo = $("#BillNo").val();
+            var CustomerId = $("#CustomerId").val();
+            var TotalDiscount =   $('#TotalDiscount').val();
+            var TotalBillAmount =$('#TotalBillAmount').val();
+            var DueAmount =$('#DueAmount').val();
+            var PaidAmount =$('#PaidAmount').val();
+
+            var dataO = {
+                id: Id,
+                date: nDate,
+                billNo: BillNo,
+                customerId: CustomerId,
+                totalDiscount: TotalDiscount,
+                totalBillAmount: TotalBillAmount,
+                dueAmount: DueAmount,
+                paidAmount: PaidAmount,
+                inventoryProductList: detail
+            };
+
+
+
+            var json = JSON.stringify(dataO);
+            var url = "Create";
+            if (Id != 0) {
+                url = "Edit";
+            }
+            $.ajax({
+                type: "Post",
+                url: url,
+                data: json,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    if (response == "Ok") {
+                            var result = confirm(" Data Save Successfully. Are you Want to Refresh Page?");
+                            if (result == true) {
+                                reloadPage();
+                            }
+                    }
+                    else {
+                        alert("Data Save Failed.");
+                    }
+                },
+                error: function (response) {
+                    console.log(response);
+                    alert("Sorry! Something Wrong!");
+                }
+            });
+        });
+
+        function reloadPage() {
+            window.location.href = window.location.href;
+        }
+    </script>
+}

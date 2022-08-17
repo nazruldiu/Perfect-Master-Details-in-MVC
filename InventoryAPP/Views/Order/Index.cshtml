@@ -1,0 +1,50 @@
+﻿@model IEnumerable<Inventory>
+@{
+    ViewBag.Title = "Index";
+}
+<h2>Order</h2>
+<p>
+    @Html.ActionLink("Create New Order", "Create", "Order", new { @class="btn btn-success"})
+</p>
+<table class="table table-bordered" id="table_id">
+    <thead>
+        <tr>
+            <td>
+                Bill No.
+            </td>
+            <td>
+                Date
+            </td>
+            <td>
+                Action
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null)
+        {
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @item.BillNo
+                    </td>
+                    <td>
+                        @item.Date
+                    </td>
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                        @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#table_id').DataTable();
+        });
+    </script>
+    }
